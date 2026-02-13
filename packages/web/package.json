@@ -26,7 +26,7 @@
     "@tiptap/extension-bold": "^2.4.0",
     "@tiptap/extension-italic": "^2.4.0",
     "@tiptap/extension-underline": "^2.4.0",
-    "@film/shared": "workspace:*"
+    "@film/shared": "*"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
