@@ -29,7 +29,7 @@ export default function Navbar() {
       }}
     >
       <Link
-        to="/"
+        to="/dashboard"
         style={{
           fontSize: "20px",
           fontWeight: 800,
@@ -46,7 +46,7 @@ export default function Navbar() {
 
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <Link
-          to="/"
+          to="/dashboard"
           style={{
             textDecoration: "none",
             color: "var(--text-secondary)",

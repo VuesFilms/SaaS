@@ -37,7 +37,7 @@ export default function NotFound() {
         Page not found
       </p>
       <Link
-        to="/"
+        to="/dashboard"
         style={{
           display: "inline-flex",
           alignItems: "center",

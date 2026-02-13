@@ -1,10 +1,11 @@
 import "./i18n.js";
 import "./theme.css";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeProvider } from "./contexts/ThemeContext.js";
 import { DirectionProvider } from "./contexts/DirectionContext.js";
 import Navbar from "./components/Navbar.js";
+import LandingPage from "./pages/LandingPage.js";
 import Dashboard from "./pages/Dashboard.js";
 import Login from "./pages/Login.js";
 import Register from "./pages/Register.js";
@@ -13,6 +14,8 @@ import NotFound from "./pages/NotFound.js";
 
 export default function App() {
   const { ready } = useTranslation();
+  const location = useLocation();
+  const isLanding = location.pathname === "/" || location.pathname === "";
 
   if (!ready) {
     return (
@@ -45,22 +48,29 @@ export default function App() {
             transition: "background-color 0.25s ease, color 0.25s ease",
           }}
         >
-          <Navbar />
-          <main
-            style={{
-              padding: "28px",
-              maxWidth: "1200px",
-              margin: "0 auto",
-            }}
-          >
+          {/* Landing page has its own nav — hide default Navbar on "/" */}
+          {!isLanding && <Navbar />}
+          {isLanding ? (
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/editor/:id" element={<EditorPage />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/" element={<LandingPage />} />
             </Routes>
-          </main>
+          ) : (
+            <main
+              style={{
+                padding: "28px",
+                maxWidth: "1200px",
+                margin: "0 auto",
+              }}
+            >
+              <Routes>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/editor/:id" element={<EditorPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+          )}
         </div>
       </DirectionProvider>
     </ThemeProvider>
