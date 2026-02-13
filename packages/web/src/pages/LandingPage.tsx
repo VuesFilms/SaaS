@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 /* ───── Animated section that fades in on scroll ───── */
 function RevealSection({
@@ -284,6 +285,8 @@ function StepCard({
    LANDING PAGE
    ═══════════════════════════════════════════ */
 export default function LandingPage() {
+  const { t, i18n } = useTranslation();
+
   /* Floating orbs animated positions */
   const [scroll, setScroll] = useState(0);
   useEffect(() => {
@@ -292,8 +295,15 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "ar" ? "en" : "ar";
+    i18n.changeLanguage(newLang);
+  };
+
+  const isRtl = i18n.language === "ar";
+
   return (
-    <div style={{ overflow: "hidden" }}>
+    <div style={{ overflow: "hidden", direction: isRtl ? "rtl" : "ltr" }}>
       {/* ── Floating gradient orbs ── */}
       <div
         style={{
@@ -388,13 +398,43 @@ export default function LandingPage() {
             letterSpacing: "-0.5px",
           }}
         >
-          Film SaaS
+          {t("app.title")}
         </Link>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <NavLink to="/dashboard">Dashboard</NavLink>
-          <NavLink to="/login">Login</NavLink>
-          <GradientButton to="/register">Get Started</GradientButton>
+          <NavLink to="/dashboard">{t("app.dashboard")}</NavLink>
+          <NavLink to="/login">{t("app.login")}</NavLink>
+
+          {/* Language toggle */}
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            title={t("app.language")}
+            style={{
+              padding: "8px 14px",
+              border: "1px solid rgba(139,92,246,0.3)",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 600,
+              backgroundColor: "rgba(139,92,246,0.08)",
+              color: "#c4b5fd",
+              transition: "all 0.2s ease",
+              fontFamily: "var(--font-family)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "rgba(139,92,246,0.6)";
+              e.currentTarget.style.background = "rgba(139,92,246,0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)";
+              e.currentTarget.style.background = "rgba(139,92,246,0.08)";
+            }}
+          >
+            {i18n.language === "ar" ? "EN" : "AR"}
+          </button>
+
+          <GradientButton to="/register">{t("app.register")}</GradientButton>
         </div>
       </nav>
 
@@ -440,7 +480,7 @@ export default function LandingPage() {
                   animation: "pulseGlow 2s ease infinite",
                 }}
               />
-              Professional Screenplay Writing Platform
+              {t("landing.badge")}
             </div>
           </RevealSection>
 
@@ -456,7 +496,7 @@ export default function LandingPage() {
                 letterSpacing: "-2px",
               }}
             >
-              <span style={{ color: "#f1f5f9" }}>Write Scripts</span>
+              <span style={{ color: "#f1f5f9" }}>{t("landing.heroTitle1")}</span>
               <br />
               <span
                 style={{
@@ -466,7 +506,7 @@ export default function LandingPage() {
                   backgroundClip: "text",
                 }}
               >
-                Like a Pro
+                {t("landing.heroTitle2")}
               </span>
             </h1>
           </RevealSection>
@@ -483,8 +523,7 @@ export default function LandingPage() {
                 fontWeight: 400,
               }}
             >
-              Industry-standard screenplay formatting, powerful editing tools,
-              and seamless export — all in one beautiful, dark-themed workspace.
+              {t("landing.heroSubtitle")}
             </p>
           </RevealSection>
 
@@ -499,11 +538,11 @@ export default function LandingPage() {
               }}
             >
               <GradientButton to="/editor/new" large>
-                Start Writing
-                <span style={{ fontSize: "18px" }}>&rarr;</span>
+                {t("landing.startWriting")}
+                <span style={{ fontSize: "18px" }}>{isRtl ? "\u2190" : "\u2192"}</span>
               </GradientButton>
               <GradientButton to="/dashboard" large outline>
-                View Dashboard
+                {t("landing.viewDashboard")}
               </GradientButton>
             </div>
           </RevealSection>
@@ -579,11 +618,11 @@ export default function LandingPage() {
                     margin: "0 4px",
                   }}
                 />
-                <MockBtn label="Scene" accent />
-                <MockBtn label="Action" accent />
-                <MockBtn label="Character" accent />
-                <MockBtn label="Dialogue" accent />
-                <MockBtn label="Transition" accent />
+                <MockBtn label={t("editor.sceneHeading")} accent />
+                <MockBtn label={t("editor.action")} accent />
+                <MockBtn label={t("editor.character")} accent />
+                <MockBtn label={t("editor.dialogue")} accent />
+                <MockBtn label={t("editor.transition")} accent />
                 <span
                   style={{
                     width: "1px",
@@ -605,6 +644,7 @@ export default function LandingPage() {
                   fontSize: "14px",
                   lineHeight: 1.8,
                   color: "#cbd5e1",
+                  direction: isRtl ? "rtl" : "ltr",
                 }}
               >
                 <div
@@ -615,12 +655,10 @@ export default function LandingPage() {
                     letterSpacing: "0.5px",
                   }}
                 >
-                  INT. WRITER&apos;S STUDIO - NIGHT
+                  {t("landing.mockScene")}
                 </div>
                 <div style={{ marginTop: "16px", color: "#94a3b8" }}>
-                  A dimly lit room. Soft ambient light from multiple monitors
-                  illuminates the desk. The writer leans forward, fingers poised
-                  over the keyboard.
+                  {t("landing.mockAction")}
                 </div>
                 <div
                   style={{
@@ -631,7 +669,7 @@ export default function LandingPage() {
                     color: "#e2e8f0",
                   }}
                 >
-                  WRITER
+                  {t("landing.mockCharacter")}
                 </div>
                 <div
                   style={{
@@ -641,20 +679,19 @@ export default function LandingPage() {
                     color: "#94a3b8",
                   }}
                 >
-                  This changes everything. A screenplay
-                  editor that actually understands format.
+                  {t("landing.mockDialogue")}
                 </div>
                 <div
                   style={{
                     marginTop: "20px",
-                    textAlign: "right",
+                    textAlign: isRtl ? "left" : "right",
                     textTransform: "uppercase",
                     fontWeight: 700,
                     color: "#64748b",
                     letterSpacing: "0.5px",
                   }}
                 >
-                  CUT TO:
+                  {t("landing.mockTransition")}
                 </div>
               </div>
             </div>
@@ -692,7 +729,7 @@ export default function LandingPage() {
                   marginBottom: "12px",
                 }}
               >
-                Features
+                {t("landing.featuresLabel")}
               </p>
               <h2
                 style={{
@@ -703,7 +740,7 @@ export default function LandingPage() {
                   letterSpacing: "-1px",
                 }}
               >
-                Everything You Need
+                {t("landing.featuresTitle")}
               </h2>
               <p
                 style={{
@@ -714,8 +751,7 @@ export default function LandingPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Professional tools designed for screenwriters, filmmakers, and
-                storytellers who demand precision.
+                {t("landing.featuresSubtitle")}
               </p>
             </div>
           </RevealSection>
@@ -729,38 +765,38 @@ export default function LandingPage() {
           >
             <FeatureCard
               icon={"\u270F\uFE0F"}
-              title="Screenplay Formatting"
-              desc="Industry-standard blocks: Scene Headings, Action, Character, Dialogue, Parenthetical, and Transitions — all with keyboard shortcuts."
+              title={t("landing.featureFormatTitle")}
+              desc={t("landing.featureFormatDesc")}
               delay={0}
             />
             <FeatureCard
               icon={"\uD83D\uDCE4"}
-              title="Export to PDF & Word"
-              desc="One-click export to properly formatted PDF or Word documents. Ready for submission to studios, agents, and competitions."
+              title={t("landing.featureExportTitle")}
+              desc={t("landing.featureExportDesc")}
               delay={0.1}
             />
             <FeatureCard
               icon={"\uD83C\uDFA8"}
-              title="Rich Text Editor"
-              desc="Full formatting toolbar with Bold, Italic, Underline, Headings, and text alignment. Powered by TipTap for a smooth editing experience."
+              title={t("landing.featureEditorTitle")}
+              desc={t("landing.featureEditorDesc")}
               delay={0.2}
             />
             <FeatureCard
               icon={"\uD83C\uDF19"}
-              title="Dark & Light Themes"
-              desc="Work comfortably day or night. Gorgeous dark mode with glassmorphic design, plus a clean light mode when you prefer it."
+              title={t("landing.featureThemeTitle")}
+              desc={t("landing.featureThemeDesc")}
               delay={0.05}
             />
             <FeatureCard
               icon={"\uD83C\uDF10"}
-              title="Multi-language (EN/AR)"
-              desc="Full internationalization with English and Arabic support, including right-to-left (RTL) layout — write in your native language."
+              title={t("landing.featureLangTitle")}
+              desc={t("landing.featureLangDesc")}
               delay={0.15}
             />
             <FeatureCard
               icon={"\uD83D\uDCC2"}
-              title="Project Dashboard"
-              desc="Organize all your screenplays in one place. Manage projects by genre, see recent work, and jump right back into writing."
+              title={t("landing.featureProjectTitle")}
+              desc={t("landing.featureProjectDesc")}
               delay={0.25}
             />
           </div>
@@ -786,7 +822,7 @@ export default function LandingPage() {
                   marginBottom: "12px",
                 }}
               >
-                How It Works
+                {t("landing.howLabel")}
               </p>
               <h2
                 style={{
@@ -797,7 +833,7 @@ export default function LandingPage() {
                   letterSpacing: "-1px",
                 }}
               >
-                From Idea to Script in Minutes
+                {t("landing.howTitle")}
               </h2>
             </div>
           </RevealSection>
@@ -811,20 +847,20 @@ export default function LandingPage() {
           >
             <StepCard
               num="1"
-              title="Create a Project"
-              desc="Start a new project from the dashboard and give your screenplay a title."
+              title={t("landing.step1Title")}
+              desc={t("landing.step1Desc")}
               delay={0}
             />
             <StepCard
               num="2"
-              title="Write Your Script"
-              desc="Use professional formatting blocks. Keyboard shortcuts make it fast."
+              title={t("landing.step2Title")}
+              desc={t("landing.step2Desc")}
               delay={0.1}
             />
             <StepCard
               num="3"
-              title="Export & Share"
-              desc="Export your finished screenplay as a PDF or Word document. Done."
+              title={t("landing.step3Title")}
+              desc={t("landing.step3Desc")}
               delay={0.2}
             />
           </div>
@@ -853,13 +889,13 @@ export default function LandingPage() {
               }}
             >
               {[
-                { label: "React 18", sub: "UI Framework" },
-                { label: "TypeScript", sub: "Type Safety" },
-                { label: "TipTap", sub: "Editor Engine" },
-                { label: "Vite", sub: "Build Tool" },
-                { label: "i18next", sub: "Multi-language" },
-              ].map((t) => (
-                <div key={t.label}>
+                { label: "React 18", sub: t("landing.techReact") },
+                { label: "TypeScript", sub: t("landing.techTS") },
+                { label: "TipTap", sub: t("landing.techTipTap") },
+                { label: "Vite", sub: t("landing.techVite") },
+                { label: "i18next", sub: t("landing.techI18n") },
+              ].map((tech) => (
+                <div key={tech.label}>
                   <div
                     style={{
                       fontSize: "20px",
@@ -868,7 +904,7 @@ export default function LandingPage() {
                       marginBottom: "4px",
                     }}
                   >
-                    {t.label}
+                    {tech.label}
                   </div>
                   <div
                     style={{
@@ -879,7 +915,7 @@ export default function LandingPage() {
                       letterSpacing: "1px",
                     }}
                   >
-                    {t.sub}
+                    {tech.sub}
                   </div>
                 </div>
               ))}
@@ -922,7 +958,7 @@ export default function LandingPage() {
                 lineHeight: 1.1,
               }}
             >
-              Ready to Write Your{" "}
+              {t("landing.ctaTitle1")}
               <span
                 style={{
                   background: "linear-gradient(135deg, #818cf8, #a78bfa, #c4b5fd)",
@@ -931,7 +967,7 @@ export default function LandingPage() {
                   backgroundClip: "text",
                 }}
               >
-                Masterpiece
+                {t("landing.ctaTitle2")}
               </span>
               ?
             </h2>
@@ -944,12 +980,11 @@ export default function LandingPage() {
                 lineHeight: 1.6,
               }}
             >
-              Join Film SaaS and bring your stories to life with professional
-              screenplay tools.
+              {t("landing.ctaSubtitle")}
             </p>
             <GradientButton to="/register" large>
-              Get Started Free
-              <span style={{ fontSize: "18px" }}>&rarr;</span>
+              {t("landing.getStarted")}
+              <span style={{ fontSize: "18px" }}>{isRtl ? "\u2190" : "\u2192"}</span>
             </GradientButton>
           </RevealSection>
         </section>
@@ -978,15 +1013,15 @@ export default function LandingPage() {
               backgroundClip: "text",
             }}
           >
-            Film SaaS
+            {t("app.title")}
           </span>
           <span style={{ fontSize: "13px", color: "#475569" }}>
-            &copy; {new Date().getFullYear()} Film SaaS. All rights reserved.
+            &copy; {new Date().getFullYear()} {t("app.title")}. {t("landing.footerRights")}
           </span>
           <div style={{ display: "flex", gap: "20px" }}>
-            <FooterLink to="/dashboard">Dashboard</FooterLink>
-            <FooterLink to="/login">Login</FooterLink>
-            <FooterLink to="/register">Register</FooterLink>
+            <FooterLink to="/dashboard">{t("app.dashboard")}</FooterLink>
+            <FooterLink to="/login">{t("app.login")}</FooterLink>
+            <FooterLink to="/register">{t("app.register")}</FooterLink>
           </div>
         </footer>
       </div>

@@ -4,6 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   SceneHeading,
@@ -112,8 +113,138 @@ function handleIoBtnLeave(e: React.MouseEvent<HTMLButtonElement>) {
   e.currentTarget.style.transform = "translateY(0)";
 }
 
+/* ───── Right-click context menu for block types ───── */
+function BlockTypeContextMenu({
+  x,
+  y,
+  editor,
+  onClose,
+}: {
+  x: number;
+  y: number;
+  editor: Editor;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={menuRef}
+      style={{
+        position: "fixed",
+        top: y,
+        left: x,
+        zIndex: 1000,
+        background: "var(--bg-elevated, rgba(17, 24, 39, 0.95))",
+        border: "1px solid var(--border-primary, rgba(255,255,255,0.1))",
+        borderRadius: "12px",
+        padding: "6px",
+        minWidth: "200px",
+        boxShadow:
+          "0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(99,102,241,0.1)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          padding: "8px 12px 6px",
+          fontSize: "11px",
+          fontWeight: 700,
+          textTransform: "uppercase",
+          letterSpacing: "1.5px",
+          color: "var(--accent-primary, #a78bfa)",
+          borderBottom: "1px solid var(--border-primary, rgba(255,255,255,0.06))",
+          marginBottom: "4px",
+        }}
+      >
+        {t("editor.changeBlockType")}
+      </div>
+
+      {BLOCK_TYPES.map((blockType) => {
+        const isActive = editor.isActive(blockType.name);
+        const isHovered = hoveredItem === blockType.name;
+
+        return (
+          <button
+            key={blockType.name}
+            type="button"
+            onClick={() => {
+              const command = blockTypeCommands[blockType.name];
+              if (command) command(editor);
+              onClose();
+            }}
+            onMouseEnter={() => setHoveredItem(blockType.name)}
+            onMouseLeave={() => setHoveredItem(null)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+              padding: "9px 12px",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: isActive ? 700 : 500,
+              fontFamily: "var(--font-family)",
+              background: isActive
+                ? "var(--accent-gradient, linear-gradient(135deg, #6366f1, #8b5cf6))"
+                : isHovered
+                  ? "var(--toolbar-btn-hover, rgba(255,255,255,0.06))"
+                  : "transparent",
+              color: isActive
+                ? "#fff"
+                : isHovered
+                  ? "var(--accent-primary, #a78bfa)"
+                  : "var(--text-secondary, #94a3b8)",
+              transition: "all 0.15s ease",
+              textAlign: "start",
+            }}
+          >
+            <span>{t(blockType.i18nKey)}</span>
+            <span
+              style={{
+                fontSize: "11px",
+                opacity: 0.5,
+                fontWeight: 400,
+              }}
+            >
+              {blockType.shortcut}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ScreenplayEditor() {
   const { t } = useTranslation();
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -145,6 +276,18 @@ export default function ScreenplayEditor() {
     ],
     content: "",
   });
+
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      setContextMenu({ x: e.clientX, y: e.clientY });
+    },
+    [],
+  );
+
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
 
   if (!editor) {
     return null;
@@ -322,13 +465,25 @@ export default function ScreenplayEditor() {
 
       {/* Editor content */}
       <div
+        onContextMenu={handleContextMenu}
         style={{
           minHeight: "460px",
           background: "var(--editor-bg)",
+          position: "relative",
         }}
       >
         <EditorContent editor={editor} />
       </div>
+
+      {/* Right-click context menu */}
+      {contextMenu && (
+        <BlockTypeContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          editor={editor}
+          onClose={closeContextMenu}
+        />
+      )}
     </div>
   );
 }
