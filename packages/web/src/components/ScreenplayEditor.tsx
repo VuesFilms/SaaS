@@ -22,6 +22,7 @@ import {
   setTransition,
   BLOCK_TYPES,
 } from "../editor/commands";
+import { exportJSON, exportFountain, importFile } from "../editor/io";
 
 const editorContainerStyles: React.CSSProperties = {
   border: "1px solid #e0e0e0",
@@ -77,6 +78,14 @@ const separatorStyles: React.CSSProperties = {
   backgroundColor: "#d1d5db",
   margin: "0 4px",
   alignSelf: "stretch",
+};
+
+const ioButtonStyles: React.CSSProperties = {
+  ...toolbarButtonStyles,
+  fontSize: "12px",
+  backgroundColor: "#dbeafe",
+  borderColor: "#3b82f6",
+  color: "#1e40af",
 };
 
 const contentStyles: React.CSSProperties = {
@@ -256,6 +265,31 @@ export default function ScreenplayEditor() {
             {t(blockType.i18nKey)}
           </button>
         ))}
+
+        <span style={separatorStyles} />
+
+        {/* Import/Export buttons */}
+        <button
+          type="button"
+          onClick={() => exportJSON(editor)}
+          style={ioButtonStyles}
+        >
+          {t("editor.exportJSON")}
+        </button>
+        <button
+          type="button"
+          onClick={() => exportFountain(editor)}
+          style={ioButtonStyles}
+        >
+          {t("editor.exportFountain")}
+        </button>
+        <button
+          type="button"
+          onClick={() => importFile(editor)}
+          style={ioButtonStyles}
+        >
+          {t("editor.importFile")}
+        </button>
       </div>
 
       <div style={contentStyles}>
