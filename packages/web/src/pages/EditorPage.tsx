@@ -21,16 +21,26 @@ export default function EditorPage() {
   const [autoSaveStatus, setAutoSaveStatus] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const projectIdRef = useRef(projectId);
+  const latestContentRef = useRef<string | null>(null);
+
+  // Keep projectIdRef in sync
+  useEffect(() => {
+    projectIdRef.current = projectId;
+  }, [projectId]);
 
   // Load project on mount
   useEffect(() => {
     if (id === "new") {
       const project = createProject(t("app.untitledProject"));
       setProjectId(project.id);
+      projectIdRef.current = project.id;
       setTitle(project.title);
       setInitialContent("");
       navigate(`/editor/${project.id}`, { replace: true });
     } else if (id) {
+      setProjectId(id);
+      projectIdRef.current = id;
       const project = getProject(id);
       if (project) {
         setTitle(project.title);
@@ -52,46 +62,65 @@ export default function EditorPage() {
   const handleTitleSubmit = useCallback(() => {
     setIsEditingTitle(false);
     const trimmed = title.trim();
-    if (trimmed && projectId) {
-      renameProject(projectId, trimmed);
+    if (trimmed && projectIdRef.current) {
+      renameProject(projectIdRef.current, trimmed);
     } else if (!trimmed) {
       setTitle(t("app.untitledProject"));
-      if (projectId) renameProject(projectId, t("app.untitledProject"));
+      if (projectIdRef.current) renameProject(projectIdRef.current, t("app.untitledProject"));
     }
-  }, [title, projectId, t]);
+  }, [title, t]);
 
-  const showAutoSaved = useCallback(() => {
-    setAutoSaveStatus(t("app.autoSaved"));
-    setTimeout(() => setAutoSaveStatus(null), 2000);
+  const saveNow = useCallback(() => {
+    const pid = projectIdRef.current;
+    if (pid && latestContentRef.current !== null) {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      updateProjectContent(pid, latestContentRef.current);
+      latestContentRef.current = null;
+      setAutoSaveStatus(t("app.autoSaved"));
+      setTimeout(() => setAutoSaveStatus(null), 2000);
+    }
   }, [t]);
-
-  const latestContentRef = useRef<string | null>(null);
 
   const handleContentChange = useCallback(
     (html: string) => {
-      if (!projectId) return;
       latestContentRef.current = html;
       // Debounced auto-save
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       autoSaveTimerRef.current = setTimeout(() => {
-        updateProjectContent(projectId, html);
-        latestContentRef.current = null;
-        showAutoSaved();
+        const pid = projectIdRef.current;
+        if (pid) {
+          updateProjectContent(pid, html);
+          latestContentRef.current = null;
+          setAutoSaveStatus(t("app.autoSaved"));
+          setTimeout(() => setAutoSaveStatus(null), 2000);
+        }
       }, 1000);
     },
-    [projectId, showAutoSaved],
+    [t],
   );
 
   // Flush pending save on unmount
   useEffect(() => {
-    const pid = projectId;
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      const pid = projectIdRef.current;
       if (pid && latestContentRef.current !== null) {
         updateProjectContent(pid, latestContentRef.current);
       }
     };
-  }, [projectId]);
+  }, []);
+
+  // Also flush on browser close / refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const pid = projectIdRef.current;
+      if (pid && latestContentRef.current !== null) {
+        updateProjectContent(pid, latestContentRef.current);
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
 
   return (
     <div>
@@ -119,8 +148,9 @@ export default function EditorPage() {
                 if (e.key === "Enter") handleTitleSubmit();
                 if (e.key === "Escape") {
                   setIsEditingTitle(false);
-                  if (projectId) {
-                    const p = getProject(projectId);
+                  const pid = projectIdRef.current;
+                  if (pid) {
+                    const p = getProject(pid);
                     if (p) setTitle(p.title);
                   }
                 }
@@ -215,6 +245,34 @@ export default function EditorPage() {
             }}
           >
             {t("app.dashboard")}
+          </button>
+          <button
+            type="button"
+            onClick={saveNow}
+            style={{
+              padding: "9px 22px",
+              background: "var(--accent-gradient)",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 600,
+              boxShadow: "var(--shadow-glow)",
+              transition: "all 0.2s ease",
+              fontFamily: "var(--font-family)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow =
+                "0 0 30px var(--accent-primary-glow)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "var(--shadow-glow)";
+            }}
+          >
+            {t("app.save")}
           </button>
         </div>
       </div>
