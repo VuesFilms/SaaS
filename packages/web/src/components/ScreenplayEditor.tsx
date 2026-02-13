@@ -22,76 +22,7 @@ import {
   setTransition,
   BLOCK_TYPES,
 } from "../editor/commands";
-import { exportJSON, exportFountain, importFile } from "../editor/io";
-
-const editorContainerStyles: React.CSSProperties = {
-  border: "1px solid #e0e0e0",
-  borderRadius: "8px",
-  minHeight: "500px",
-  overflow: "hidden",
-};
-
-const toolbarStyles: React.CSSProperties = {
-  display: "flex",
-  gap: "4px",
-  padding: "8px 12px",
-  borderBottom: "1px solid #e0e0e0",
-  backgroundColor: "#f9fafb",
-  flexWrap: "wrap",
-  alignItems: "center",
-};
-
-const toolbarButtonStyles: React.CSSProperties = {
-  padding: "6px 10px",
-  border: "1px solid #d1d5db",
-  borderRadius: "4px",
-  cursor: "pointer",
-  fontSize: "13px",
-  backgroundColor: "#fff",
-  fontWeight: 500,
-};
-
-const activeButtonStyles: React.CSSProperties = {
-  ...toolbarButtonStyles,
-  backgroundColor: "#2563eb",
-  color: "#fff",
-  borderColor: "#2563eb",
-};
-
-const screenplayButtonStyles: React.CSSProperties = {
-  ...toolbarButtonStyles,
-  fontSize: "12px",
-  backgroundColor: "#fef3c7",
-  borderColor: "#f59e0b",
-  color: "#92400e",
-};
-
-const screenplayActiveButtonStyles: React.CSSProperties = {
-  ...screenplayButtonStyles,
-  backgroundColor: "#f59e0b",
-  color: "#fff",
-  borderColor: "#d97706",
-};
-
-const separatorStyles: React.CSSProperties = {
-  width: "1px",
-  backgroundColor: "#d1d5db",
-  margin: "0 4px",
-  alignSelf: "stretch",
-};
-
-const ioButtonStyles: React.CSSProperties = {
-  ...toolbarButtonStyles,
-  fontSize: "12px",
-  backgroundColor: "#dbeafe",
-  borderColor: "#3b82f6",
-  color: "#1e40af",
-};
-
-const contentStyles: React.CSSProperties = {
-  padding: "20px",
-  minHeight: "460px",
-};
+import { exportPDF, exportWord, importFile } from "../editor/io";
 
 const blockTypeCommands: Record<string, (editor: Editor) => boolean> = {
   sceneHeading: (editor) => setSceneHeading(editor),
@@ -102,15 +33,92 @@ const blockTypeCommands: Record<string, (editor: Editor) => boolean> = {
   transition: (editor) => setTransition(editor),
 };
 
+const btnBase: React.CSSProperties = {
+  padding: "6px 11px",
+  border: "1px solid var(--toolbar-btn-border)",
+  borderRadius: "7px",
+  cursor: "pointer",
+  fontSize: "12.5px",
+  fontWeight: 500,
+  backgroundColor: "var(--toolbar-btn-bg)",
+  color: "var(--text-secondary)",
+  transition: "all 0.15s ease",
+  fontFamily: "var(--font-family)",
+  lineHeight: 1.4,
+  whiteSpace: "nowrap" as const,
+};
+
+const activeBtnStyle: React.CSSProperties = {
+  ...btnBase,
+  background: "var(--accent-gradient)",
+  color: "#fff",
+  borderColor: "transparent",
+  boxShadow: "0 2px 8px var(--accent-primary-glow)",
+};
+
+const screenplayBtnBase: React.CSSProperties = {
+  ...btnBase,
+  fontSize: "11.5px",
+  backgroundColor: "var(--accent-primary-light)",
+  borderColor: "var(--accent-primary)",
+  color: "var(--accent-primary)",
+  fontWeight: 600,
+  letterSpacing: "0.2px",
+};
+
+const screenplayActiveBtn: React.CSSProperties = {
+  ...screenplayBtnBase,
+  background: "var(--accent-gradient)",
+  color: "#fff",
+  borderColor: "transparent",
+  boxShadow: "0 2px 8px var(--accent-primary-glow)",
+};
+
+const ioBtnStyle: React.CSSProperties = {
+  ...btnBase,
+  fontSize: "12px",
+  fontWeight: 600,
+  background: "var(--accent-gradient-subtle)",
+  borderColor: "var(--border-primary)",
+  color: "var(--accent-primary)",
+};
+
+function handleBtnHover(e: React.MouseEvent<HTMLButtonElement>) {
+  e.currentTarget.style.background = "var(--toolbar-btn-hover)";
+  e.currentTarget.style.borderColor = "var(--accent-primary)";
+  e.currentTarget.style.color = "var(--accent-primary)";
+}
+
+function handleBtnLeave(
+  e: React.MouseEvent<HTMLButtonElement>,
+  isActive: boolean,
+) {
+  if (!isActive) {
+    e.currentTarget.style.background = "var(--toolbar-btn-bg)";
+    e.currentTarget.style.borderColor = "var(--toolbar-btn-border)";
+    e.currentTarget.style.color = "var(--text-secondary)";
+  }
+}
+
+function handleIoBtnHover(e: React.MouseEvent<HTMLButtonElement>) {
+  e.currentTarget.style.background = "var(--accent-primary-light)";
+  e.currentTarget.style.borderColor = "var(--accent-primary)";
+  e.currentTarget.style.transform = "translateY(-1px)";
+}
+
+function handleIoBtnLeave(e: React.MouseEvent<HTMLButtonElement>) {
+  e.currentTarget.style.background = "var(--accent-gradient-subtle)";
+  e.currentTarget.style.borderColor = "var(--border-primary)";
+  e.currentTarget.style.transform = "translateY(0)";
+}
+
 export default function ScreenplayEditor() {
   const { t } = useTranslation();
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
+        heading: { levels: [1, 2, 3] },
       }),
       Placeholder.configure({
         placeholder: t("app.editor") + "...",
@@ -143,108 +151,124 @@ export default function ScreenplayEditor() {
   }
 
   return (
-    <div style={editorContainerStyles}>
-      <div style={toolbarStyles}>
-        {/* Text formatting buttons */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          style={editor.isActive("bold") ? activeButtonStyles : toolbarButtonStyles}
-        >
-          B
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          style={editor.isActive("italic") ? activeButtonStyles : toolbarButtonStyles}
-        >
-          I
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          style={editor.isActive("underline") ? activeButtonStyles : toolbarButtonStyles}
-        >
-          U
-        </button>
+    <div
+      style={{
+        border: "1px solid var(--card-border)",
+        borderRadius: "14px",
+        overflow: "hidden",
+        background: "var(--card-bg)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        boxShadow: "var(--shadow-lg)",
+        transition: "all 0.25s ease",
+      }}
+    >
+      {/* Toolbar */}
+      <div
+        style={{
+          display: "flex",
+          gap: "4px",
+          padding: "10px 14px",
+          borderBottom: "1px solid var(--toolbar-border)",
+          background: "var(--toolbar-bg)",
+          backdropFilter: "blur(12px)",
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        {/* Text formatting */}
+        {[
+          {
+            label: "B",
+            action: () => editor.chain().focus().toggleBold().run(),
+            active: editor.isActive("bold"),
+            extra: { fontWeight: 700 } as React.CSSProperties,
+          },
+          {
+            label: "I",
+            action: () => editor.chain().focus().toggleItalic().run(),
+            active: editor.isActive("italic"),
+            extra: { fontStyle: "italic" } as React.CSSProperties,
+          },
+          {
+            label: "U",
+            action: () => editor.chain().focus().toggleUnderline().run(),
+            active: editor.isActive("underline"),
+            extra: { textDecoration: "underline" } as React.CSSProperties,
+          },
+        ].map((btn) => (
+          <button
+            key={btn.label}
+            type="button"
+            onClick={btn.action}
+            style={{
+              ...(btn.active ? activeBtnStyle : btnBase),
+              ...btn.extra,
+              minWidth: "32px",
+              textAlign: "center",
+            }}
+            onMouseEnter={(e) => !btn.active && handleBtnHover(e)}
+            onMouseLeave={(e) => handleBtnLeave(e, btn.active)}
+          >
+            {btn.label}
+          </button>
+        ))}
 
-        <span style={separatorStyles} />
+        <Separator />
 
-        {/* Heading buttons */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          style={
-            editor.isActive("heading", { level: 1 })
-              ? activeButtonStyles
-              : toolbarButtonStyles
-          }
-        >
-          H1
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          style={
-            editor.isActive("heading", { level: 2 })
-              ? activeButtonStyles
-              : toolbarButtonStyles
-          }
-        >
-          H2
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          style={
-            editor.isActive("heading", { level: 3 })
-              ? activeButtonStyles
-              : toolbarButtonStyles
-          }
-        >
-          H3
-        </button>
+        {/* Headings */}
+        {([1, 2, 3] as const).map((level) => (
+          <button
+            key={`h${level}`}
+            type="button"
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level }).run()
+            }
+            style={
+              editor.isActive("heading", { level })
+                ? activeBtnStyle
+                : btnBase
+            }
+            onMouseEnter={(e) =>
+              !editor.isActive("heading", { level }) && handleBtnHover(e)
+            }
+            onMouseLeave={(e) =>
+              handleBtnLeave(e, editor.isActive("heading", { level }))
+            }
+          >
+            H{level}
+          </button>
+        ))}
 
-        <span style={separatorStyles} />
+        <Separator />
 
-        {/* Alignment buttons */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          style={
-            editor.isActive({ textAlign: "left" })
-              ? activeButtonStyles
-              : toolbarButtonStyles
-          }
-        >
-          {t("editor.left")}
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          style={
-            editor.isActive({ textAlign: "center" })
-              ? activeButtonStyles
-              : toolbarButtonStyles
-          }
-        >
-          {t("editor.center")}
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          style={
-            editor.isActive({ textAlign: "right" })
-              ? activeButtonStyles
-              : toolbarButtonStyles
-          }
-        >
-          {t("editor.right")}
-        </button>
+        {/* Alignment */}
+        {(["left", "center", "right"] as const).map((align) => (
+          <button
+            key={align}
+            type="button"
+            onClick={() =>
+              editor.chain().focus().setTextAlign(align).run()
+            }
+            style={
+              editor.isActive({ textAlign: align })
+                ? activeBtnStyle
+                : btnBase
+            }
+            onMouseEnter={(e) =>
+              !editor.isActive({ textAlign: align }) && handleBtnHover(e)
+            }
+            onMouseLeave={(e) =>
+              handleBtnLeave(e, editor.isActive({ textAlign: align }))
+            }
+          >
+            {t(`editor.${align}`)}
+          </button>
+        ))}
 
-        <span style={separatorStyles} />
+        <Separator />
 
-        {/* Screenplay format buttons */}
+        {/* Screenplay blocks */}
         {BLOCK_TYPES.map((blockType) => (
           <button
             key={blockType.name}
@@ -252,49 +276,74 @@ export default function ScreenplayEditor() {
             title={`${t(blockType.i18nKey)} (${blockType.shortcut})`}
             onClick={() => {
               const command = blockTypeCommands[blockType.name];
-              if (command) {
-                command(editor);
-              }
+              if (command) command(editor);
             }}
             style={
               editor.isActive(blockType.name)
-                ? screenplayActiveButtonStyles
-                : screenplayButtonStyles
+                ? screenplayActiveBtn
+                : screenplayBtnBase
             }
           >
             {t(blockType.i18nKey)}
           </button>
         ))}
 
-        <span style={separatorStyles} />
+        <Separator />
 
-        {/* Import/Export buttons */}
+        {/* Import/Export */}
         <button
           type="button"
-          onClick={() => exportJSON(editor)}
-          style={ioButtonStyles}
+          onClick={() => exportPDF(editor)}
+          style={ioBtnStyle}
+          onMouseEnter={handleIoBtnHover}
+          onMouseLeave={handleIoBtnLeave}
         >
-          {t("editor.exportJSON")}
+          {t("editor.exportPDF")}
         </button>
         <button
           type="button"
-          onClick={() => exportFountain(editor)}
-          style={ioButtonStyles}
+          onClick={() => exportWord(editor)}
+          style={ioBtnStyle}
+          onMouseEnter={handleIoBtnHover}
+          onMouseLeave={handleIoBtnLeave}
         >
-          {t("editor.exportFountain")}
+          {t("editor.exportWord")}
         </button>
         <button
           type="button"
           onClick={() => importFile(editor)}
-          style={ioButtonStyles}
+          style={ioBtnStyle}
+          onMouseEnter={handleIoBtnHover}
+          onMouseLeave={handleIoBtnLeave}
         >
           {t("editor.importFile")}
         </button>
       </div>
 
-      <div style={contentStyles}>
+      {/* Editor content */}
+      <div
+        style={{
+          minHeight: "460px",
+          background: "var(--editor-bg)",
+        }}
+      >
         <EditorContent editor={editor} />
       </div>
     </div>
+  );
+}
+
+function Separator() {
+  return (
+    <span
+      style={{
+        width: "1px",
+        backgroundColor: "var(--toolbar-border)",
+        margin: "0 4px",
+        alignSelf: "stretch",
+        minHeight: "24px",
+        opacity: 0.6,
+      }}
+    />
   );
 }

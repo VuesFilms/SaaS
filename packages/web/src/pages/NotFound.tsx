@@ -1,35 +1,64 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-const containerStyles: React.CSSProperties = {
-  textAlign: "center",
-  padding: "80px 20px",
-};
-
-const linkStyles: React.CSSProperties = {
-  display: "inline-block",
-  marginTop: "16px",
-  padding: "10px 20px",
-  backgroundColor: "#2563eb",
-  color: "#fff",
-  textDecoration: "none",
-  borderRadius: "6px",
-  fontSize: "14px",
-  fontWeight: 600,
-};
-
 export default function NotFound() {
   const { t } = useTranslation();
 
   return (
-    <div style={containerStyles}>
-      <h1 style={{ fontSize: "72px", margin: "0 0 8px 0", color: "#d1d5db" }}>
+    <div
+      style={{
+        textAlign: "center",
+        padding: "100px 20px",
+        animation: "fadeInUp 0.4s ease both",
+      }}
+    >
+      <h1
+        style={{
+          fontSize: "80px",
+          margin: "0 0 4px 0",
+          fontWeight: 800,
+          background: "var(--accent-gradient)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          letterSpacing: "-2px",
+        }}
+      >
         404
       </h1>
-      <p style={{ fontSize: "18px", color: "#6b7280", marginBottom: "24px" }}>
+      <p
+        style={{
+          fontSize: "18px",
+          color: "var(--text-tertiary)",
+          marginBottom: "28px",
+          fontWeight: 400,
+        }}
+      >
         Page not found
       </p>
-      <Link to="/" style={linkStyles}>
+      <Link
+        to="/"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "11px 24px",
+          background: "var(--accent-gradient)",
+          color: "#fff",
+          textDecoration: "none",
+          borderRadius: "10px",
+          fontSize: "14px",
+          fontWeight: 600,
+          boxShadow: "var(--shadow-glow)",
+          transition: "all 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-1px)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+        }}
+      >
         {t("app.dashboard")}
       </Link>
     </div>

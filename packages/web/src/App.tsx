@@ -1,4 +1,5 @@
 import "./i18n.js";
+import "./theme.css";
 import { Routes, Route } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeProvider } from "./contexts/ThemeContext.js";
@@ -10,24 +11,48 @@ import Register from "./pages/Register.js";
 import EditorPage from "./pages/EditorPage.js";
 import NotFound from "./pages/NotFound.js";
 
-const appStyles: React.CSSProperties = {
-  minHeight: "100vh",
-  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-};
-
 export default function App() {
   const { ready } = useTranslation();
 
   if (!ready) {
-    return <div>Loading...</div>;
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--bg-primary)",
+          color: "var(--text-tertiary)",
+          fontFamily: "var(--font-family)",
+          fontSize: "15px",
+        }}
+      >
+        Loading...
+      </div>
+    );
   }
 
   return (
     <ThemeProvider>
       <DirectionProvider>
-        <div style={appStyles}>
+        <div
+          style={{
+            minHeight: "100vh",
+            fontFamily: "var(--font-family)",
+            background: "var(--bg-primary)",
+            color: "var(--text-primary)",
+            transition: "background-color 0.25s ease, color 0.25s ease",
+          }}
+        >
           <Navbar />
-          <main style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+          <main
+            style={{
+              padding: "28px",
+              maxWidth: "1200px",
+              margin: "0 auto",
+            }}
+          >
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
