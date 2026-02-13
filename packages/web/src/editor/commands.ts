@@ -1,45 +1,46 @@
 import type { Editor } from "@tiptap/core";
 
 /**
- * Set the current block to a scene heading node.
+ * Insert a new line with the given block type and focus it.
  */
+function insertBlock(editor: Editor, nodeType: string): boolean {
+  return editor
+    .chain()
+    .focus()
+    .command(({ tr, dispatch }) => {
+      if (dispatch) {
+        const { $to } = tr.selection;
+        const endOfBlock = $to.end();
+        tr.split(endOfBlock);
+      }
+      return true;
+    })
+    .setNode(nodeType)
+    .run();
+}
+
 export function setSceneHeading(editor: Editor): boolean {
-  return editor.chain().focus().setNode("sceneHeading").run();
+  return insertBlock(editor, "sceneHeading");
 }
 
-/**
- * Set the current block to an action node.
- */
 export function setAction(editor: Editor): boolean {
-  return editor.chain().focus().setNode("action").run();
+  return insertBlock(editor, "action");
 }
 
-/**
- * Set the current block to a character node.
- */
 export function setCharacter(editor: Editor): boolean {
-  return editor.chain().focus().setNode("character").run();
+  return insertBlock(editor, "character");
 }
 
-/**
- * Set the current block to a dialogue node.
- */
 export function setDialogue(editor: Editor): boolean {
-  return editor.chain().focus().setNode("dialogue").run();
+  return insertBlock(editor, "dialogue");
 }
 
-/**
- * Set the current block to a parenthetical node.
- */
 export function setParenthetical(editor: Editor): boolean {
-  return editor.chain().focus().setNode("parenthetical").run();
+  return insertBlock(editor, "parenthetical");
 }
 
-/**
- * Set the current block to a transition node.
- */
 export function setTransition(editor: Editor): boolean {
-  return editor.chain().focus().setNode("transition").run();
+  return insertBlock(editor, "transition");
 }
 
 export interface BlockType {
