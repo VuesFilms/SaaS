@@ -16,7 +16,7 @@ export default function EditorPage() {
 
   const [projectId, setProjectId] = useState(id === "new" ? null : id ?? null);
   const [title, setTitle] = useState("");
-  const [initialContent, setInitialContent] = useState("");
+  const [initialContent, setInitialContent] = useState<string | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +35,8 @@ export default function EditorPage() {
       if (project) {
         setTitle(project.title);
         setInitialContent(project.content);
+      } else {
+        setInitialContent("");
       }
     }
   }, [id, navigate, t]);
@@ -63,25 +65,33 @@ export default function EditorPage() {
     setTimeout(() => setAutoSaveStatus(null), 2000);
   }, [t]);
 
+  const latestContentRef = useRef<string | null>(null);
+
   const handleContentChange = useCallback(
     (html: string) => {
       if (!projectId) return;
+      latestContentRef.current = html;
       // Debounced auto-save
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       autoSaveTimerRef.current = setTimeout(() => {
         updateProjectContent(projectId, html);
+        latestContentRef.current = null;
         showAutoSaved();
       }, 1000);
     },
     [projectId, showAutoSaved],
   );
 
-  // Cleanup timer
+  // Flush pending save on unmount
   useEffect(() => {
+    const pid = projectId;
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      if (pid && latestContentRef.current !== null) {
+        updateProjectContent(pid, latestContentRef.current);
+      }
     };
-  }, []);
+  }, [projectId]);
 
   return (
     <div>
@@ -209,10 +219,13 @@ export default function EditorPage() {
         </div>
       </div>
 
-      <ScreenplayEditor
-        initialContent={initialContent}
-        onContentChange={handleContentChange}
-      />
+      {initialContent !== null && (
+        <ScreenplayEditor
+          key={projectId}
+          initialContent={initialContent}
+          onContentChange={handleContentChange}
+        />
+      )}
     </div>
   );
 }
