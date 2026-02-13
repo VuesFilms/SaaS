@@ -9,9 +9,11 @@ if (!rootElement) {
   throw new Error("Root element not found");
 }
 
+const basename = import.meta.env.BASE_URL.replace(/\/+$/, "");
+
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <App />
     </BrowserRouter>
   </React.StrictMode>,
