@@ -1,46 +1,34 @@
 import type { Editor } from "@tiptap/core";
 
 /**
- * Insert a new line with the given block type and focus it.
+ * Convert the current block to the given block type (in-place).
  */
-function insertBlock(editor: Editor, nodeType: string): boolean {
-  return editor
-    .chain()
-    .focus()
-    .command(({ tr, dispatch }) => {
-      if (dispatch) {
-        const { $to } = tr.selection;
-        const endOfBlock = $to.end();
-        tr.split(endOfBlock);
-      }
-      return true;
-    })
-    .setNode(nodeType)
-    .run();
+function setBlock(editor: Editor, nodeType: string): boolean {
+  return editor.chain().focus().setNode(nodeType).run();
 }
 
 export function setSceneHeading(editor: Editor): boolean {
-  return insertBlock(editor, "sceneHeading");
+  return setBlock(editor, "sceneHeading");
 }
 
 export function setAction(editor: Editor): boolean {
-  return insertBlock(editor, "action");
+  return setBlock(editor, "action");
 }
 
 export function setCharacter(editor: Editor): boolean {
-  return insertBlock(editor, "character");
+  return setBlock(editor, "character");
 }
 
 export function setDialogue(editor: Editor): boolean {
-  return insertBlock(editor, "dialogue");
+  return setBlock(editor, "dialogue");
 }
 
 export function setParenthetical(editor: Editor): boolean {
-  return insertBlock(editor, "parenthetical");
+  return setBlock(editor, "parenthetical");
 }
 
 export function setTransition(editor: Editor): boolean {
-  return insertBlock(editor, "transition");
+  return setBlock(editor, "transition");
 }
 
 export interface BlockType {
