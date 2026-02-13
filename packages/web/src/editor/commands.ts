@@ -44,7 +44,7 @@ export function setTransition(editor: Editor): boolean {
 
 export interface BlockType {
   name: string;
-  label: string;
+  i18nKey: string;
   shortcut: string;
 }
 
@@ -52,10 +52,10 @@ export interface BlockType {
  * Array of screenplay block types for toolbar rendering.
  */
 export const BLOCK_TYPES: BlockType[] = [
-  { name: "sceneHeading", label: "Scene Heading", shortcut: "Ctrl+1" },
-  { name: "action", label: "Action", shortcut: "Ctrl+2" },
-  { name: "character", label: "Character", shortcut: "Ctrl+3" },
-  { name: "dialogue", label: "Dialogue", shortcut: "Ctrl+4" },
-  { name: "parenthetical", label: "Parenthetical", shortcut: "Ctrl+5" },
-  { name: "transition", label: "Transition", shortcut: "Ctrl+6" },
+  { name: "sceneHeading", i18nKey: "editor.sceneHeading", shortcut: "Ctrl+1" },
+  { name: "action", i18nKey: "editor.action", shortcut: "Ctrl+2" },
+  { name: "character", i18nKey: "editor.character", shortcut: "Ctrl+3" },
+  { name: "dialogue", i18nKey: "editor.dialogue", shortcut: "Ctrl+4" },
+  { name: "parenthetical", i18nKey: "editor.parenthetical", shortcut: "Ctrl+5" },
+  { name: "transition", i18nKey: "editor.transition", shortcut: "Ctrl+6" },
 ];

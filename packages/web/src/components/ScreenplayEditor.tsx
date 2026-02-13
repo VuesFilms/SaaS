@@ -208,7 +208,7 @@ export default function ScreenplayEditor() {
               : toolbarButtonStyles
           }
         >
-          Left
+          {t("editor.left")}
         </button>
         <button
           type="button"
@@ -219,7 +219,7 @@ export default function ScreenplayEditor() {
               : toolbarButtonStyles
           }
         >
-          Center
+          {t("editor.center")}
         </button>
         <button
           type="button"
@@ -230,7 +230,7 @@ export default function ScreenplayEditor() {
               : toolbarButtonStyles
           }
         >
-          Right
+          {t("editor.right")}
         </button>
 
         <span style={separatorStyles} />
@@ -240,7 +240,7 @@ export default function ScreenplayEditor() {
           <button
             key={blockType.name}
             type="button"
-            title={`${blockType.label} (${blockType.shortcut})`}
+            title={`${t(blockType.i18nKey)} (${blockType.shortcut})`}
             onClick={() => {
               const command = blockTypeCommands[blockType.name];
               if (command) {
@@ -253,7 +253,7 @@ export default function ScreenplayEditor() {
                 : screenplayButtonStyles
             }
           >
-            {blockType.label}
+            {t(blockType.i18nKey)}
           </button>
         ))}
       </div>
