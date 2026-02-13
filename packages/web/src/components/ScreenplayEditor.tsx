@@ -239,7 +239,13 @@ function BlockTypeContextMenu({
   );
 }
 
-export default function ScreenplayEditor() {
+export default function ScreenplayEditor({
+  initialContent = "",
+  onContentChange,
+}: {
+  initialContent?: string;
+  onContentChange?: (html: string) => void;
+}) {
   const { t } = useTranslation();
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -274,7 +280,10 @@ export default function ScreenplayEditor() {
       Parenthetical,
       Transition,
     ],
-    content: "",
+    content: initialContent,
+    onUpdate: ({ editor: ed }) => {
+      onContentChange?.(ed.getHTML());
+    },
   });
 
   const handleContextMenu = useCallback(

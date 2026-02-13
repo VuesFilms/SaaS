@@ -29,6 +29,11 @@ const resources = {
         createFirst: "Create your first project to get started",
         welcome: "Welcome back",
         recentWork: "Pick up where you left off",
+        rename: "Rename",
+        renameProject: "Rename Project",
+        enterNewName: "Enter new project name",
+        autoSaved: "Auto-saved",
+        untitledProject: "Untitled Project",
       },
       editor: {
         left: "Left",
@@ -119,6 +124,11 @@ const resources = {
         createFirst: "أنشئ أول مشروع لك للبدء",
         welcome: "مرحبًا بعودتك",
         recentWork: "استأنف من حيث توقفت",
+        rename: "إعادة تسمية",
+        renameProject: "إعادة تسمية المشروع",
+        enterNewName: "أدخل اسم المشروع الجديد",
+        autoSaved: "تم الحفظ تلقائياً",
+        untitledProject: "مشروع بدون عنوان",
       },
       editor: {
         left: "يسار",

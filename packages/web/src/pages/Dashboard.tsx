@@ -1,20 +1,252 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  getProjects,
+  createProject,
+  renameProject,
+  type Project,
+} from "../store/projects";
 
-interface Project {
-  id: string;
-  title: string;
-  updatedAt: string;
-  genre: string;
+/* ───── Right-click context menu ───── */
+function ProjectContextMenu({
+  x,
+  y,
+  project,
+  onRename,
+  onClose,
+}: {
+  x: number;
+  y: number;
+  project: Project;
+  onRename: (project: Project) => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={menuRef}
+      style={{
+        position: "fixed",
+        top: y,
+        left: x,
+        zIndex: 1000,
+        background: "var(--bg-elevated, rgba(17, 24, 39, 0.95))",
+        border: "1px solid var(--border-primary, rgba(255,255,255,0.1))",
+        borderRadius: "12px",
+        padding: "6px",
+        minWidth: "160px",
+        boxShadow:
+          "0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(99,102,241,0.1)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          onRename(project);
+          onClose();
+        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          width: "100%",
+          padding: "9px 12px",
+          border: "none",
+          borderRadius: "8px",
+          cursor: "pointer",
+          fontSize: "13px",
+          fontWeight: 500,
+          fontFamily: "var(--font-family)",
+          background: hovered
+            ? "var(--toolbar-btn-hover, rgba(255,255,255,0.06))"
+            : "transparent",
+          color: hovered
+            ? "var(--accent-primary, #a78bfa)"
+            : "var(--text-secondary, #94a3b8)",
+          transition: "all 0.15s ease",
+          textAlign: "start",
+        }}
+      >
+        {t("app.rename")}
+      </button>
+    </div>
+  );
 }
 
-const mockProjects: Project[] = [
-  { id: "1", title: "My First Screenplay", updatedAt: "2025-01-15", genre: "Drama" },
-  { id: "2", title: "Action Movie Draft", updatedAt: "2025-02-20", genre: "Action" },
-  { id: "3", title: "Drama Series - Episode 1", updatedAt: "2025-03-10", genre: "Series" },
-];
+/* ───── Inline rename modal ───── */
+function RenameModal({
+  project,
+  onConfirm,
+  onCancel,
+}: {
+  project: Project;
+  onConfirm: (id: string, newName: string) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const [name, setName] = useState(project.title);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-function ProjectCard({ project }: { project: Project }) {
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  const handleSubmit = () => {
+    const trimmed = name.trim();
+    if (trimmed && trimmed !== project.title) {
+      onConfirm(project.id, trimmed);
+    }
+    onCancel();
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(4px)",
+      }}
+      onClick={onCancel}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "var(--bg-elevated, rgba(17, 24, 39, 0.98))",
+          border: "1px solid var(--border-primary, rgba(255,255,255,0.1))",
+          borderRadius: "16px",
+          padding: "28px",
+          minWidth: "360px",
+          boxShadow:
+            "0 30px 80px rgba(0,0,0,0.6), 0 0 40px rgba(99,102,241,0.1)",
+        }}
+      >
+        <h3
+          style={{
+            margin: "0 0 16px 0",
+            fontSize: "17px",
+            fontWeight: 700,
+            color: "var(--text-primary, #f1f5f9)",
+          }}
+        >
+          {t("app.renameProject")}
+        </h3>
+        <input
+          ref={inputRef}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSubmit();
+            if (e.key === "Escape") onCancel();
+          }}
+          placeholder={t("app.enterNewName")}
+          style={{
+            width: "100%",
+            padding: "10px 14px",
+            border: "1px solid var(--border-primary, rgba(255,255,255,0.1))",
+            borderRadius: "10px",
+            background: "var(--bg-input, rgba(255,255,255,0.04))",
+            color: "var(--text-primary, #f1f5f9)",
+            fontSize: "14px",
+            fontFamily: "var(--font-family)",
+            outline: "none",
+            boxSizing: "border-box",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "var(--accent-primary, #6366f1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "var(--border-primary, rgba(255,255,255,0.1))";
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "10px",
+            marginTop: "18px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{
+              padding: "8px 18px",
+              border: "1px solid var(--border-primary)",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 500,
+              backgroundColor: "var(--toolbar-btn-bg, transparent)",
+              color: "var(--text-secondary, #94a3b8)",
+              fontFamily: "var(--font-family)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            {t("app.cancel")}
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            style={{
+              padding: "8px 22px",
+              background: "var(--accent-gradient, linear-gradient(135deg, #6366f1, #8b5cf6))",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 600,
+              fontFamily: "var(--font-family)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            {t("app.save")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ───── Project card ───── */
+function ProjectCard({
+  project,
+  onContextMenu,
+}: {
+  project: Project;
+  onContextMenu: (e: React.MouseEvent, project: Project) => void;
+}) {
   const genreColors: Record<string, string> = {
     Drama: "var(--accent-primary)",
     Action: "var(--warning)",
@@ -24,6 +256,10 @@ function ProjectCard({ project }: { project: Project }) {
   return (
     <Link
       to={`/editor/${project.id}`}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        onContextMenu(e, project);
+      }}
       style={{
         display: "block",
         textDecoration: "none",
@@ -117,6 +353,35 @@ function ProjectCard({ project }: { project: Project }) {
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    project: Project;
+  } | null>(null);
+  const [renamingProject, setRenamingProject] = useState<Project | null>(null);
+
+  useEffect(() => {
+    setProjects(getProjects());
+  }, []);
+
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent, project: Project) => {
+      setContextMenu({ x: e.clientX, y: e.clientY, project });
+    },
+    [],
+  );
+
+  const handleRename = useCallback((id: string, newName: string) => {
+    renameProject(id, newName);
+    setProjects(getProjects());
+  }, []);
+
+  const handleNewProject = () => {
+    const project = createProject(t("app.untitledProject"));
+    navigate(`/editor/${project.id}`);
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
@@ -153,8 +418,9 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <Link
-          to="/editor/new"
+        <button
+          type="button"
+          onClick={handleNewProject}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -171,6 +437,7 @@ export default function Dashboard() {
             boxShadow: "var(--shadow-glow)",
             transition: "all 0.2s ease",
             letterSpacing: "0.2px",
+            fontFamily: "var(--font-family)",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-1px)";
@@ -183,11 +450,11 @@ export default function Dashboard() {
           }}
         >
           + {t("app.newProject")}
-        </Link>
+        </button>
       </div>
 
       {/* Projects Grid */}
-      {mockProjects.length === 0 ? (
+      {projects.length === 0 ? (
         <div
           style={{
             textAlign: "center",
@@ -226,8 +493,9 @@ export default function Dashboard() {
           >
             {t("app.createFirst")}
           </p>
-          <Link
-            to="/editor/new"
+          <button
+            type="button"
+            onClick={handleNewProject}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -237,14 +505,15 @@ export default function Dashboard() {
               color: "#fff",
               border: "none",
               borderRadius: "10px",
-              textDecoration: "none",
               fontSize: "14px",
               fontWeight: 600,
               boxShadow: "var(--shadow-glow)",
+              cursor: "pointer",
+              fontFamily: "var(--font-family)",
             }}
           >
             + {t("app.newProject")}
-          </Link>
+          </button>
         </div>
       ) : (
         <div
@@ -254,15 +523,38 @@ export default function Dashboard() {
             gap: "20px",
           }}
         >
-          {mockProjects.map((project, idx) => (
+          {projects.map((project, idx) => (
             <div
               key={project.id}
               style={{ animationDelay: `${idx * 0.08}s` }}
             >
-              <ProjectCard project={project} />
+              <ProjectCard
+                project={project}
+                onContextMenu={handleContextMenu}
+              />
             </div>
           ))}
         </div>
+      )}
+
+      {/* Right-click context menu */}
+      {contextMenu && (
+        <ProjectContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          project={contextMenu.project}
+          onRename={(p) => setRenamingProject(p)}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {/* Rename modal */}
+      {renamingProject && (
+        <RenameModal
+          project={renamingProject}
+          onConfirm={handleRename}
+          onCancel={() => setRenamingProject(null)}
+        />
       )}
     </div>
   );
