@@ -29,7 +29,7 @@ export default function Navbar() {
       }}
     >
       <Link
-        to="/dashboard"
+        to="/"
         style={{
           fontSize: "20px",
           fontWeight: 800,
